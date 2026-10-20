@@ -48,3 +48,7 @@ GitHub searches for `"Lamar" "vlogger"` and `"idle-vlogger"` found similarly nam
 The user supplied [morluto/rea](https://github.com/morluto/rea). Installed `rea-agents` 6.7.0 and used `inspect-managed-members` to examine `StuffsIncomeService` in the Cpp2IL-generated assembly. This retained a PE/CLI member inventory and artifact digest. The current GitHub documentation describes an `inspect-il2cpp-metadata` command absent from that npm release; the release refused that command. An attempt to build the newer source was blocked by automatic approval review for attempted Vercel telemetry. It was not bypassed.
 
 Ghidra 12.1.4, Java 21, PyGhidra and GhidraMCP 2.0 were installed. GhidraMCP successfully started its local MCP server, imported `libil2cpp.so` and began analysis. Whole-binary auto-analysis was stopped; no completed Ghidra whole-program decompilation is claimed. REA's native provider refused this container's process-ownership `ps` check; its guard was not bypassed. Cheat Engine was not needed and was not used.
+
+## Selected native calculations
+
+After choosing reconstruction, Cpp2IL's `attributeinjector` output was used to locate four small ARM64 rule functions and recover their field offsets. Capstone inspection and isolated Unicorn execution established numerical fixtures for every item level, all upgrade price/value ranges and all cost-discount levels. `src/rules.js` now matches those results exactly. This is calculation recovery, not a whole-program recompilation; see [native evidence and reproduction](NATIVE-RULES.md).

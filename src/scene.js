@@ -15,14 +15,27 @@ export class World {
     }return this.textures.get(name);
   }
   async init(){
-    const json=await this.files.json('spine/Lamar.json'),text=await this.files.text('spine/Lamar.atlas');
-    const pages=[...text.matchAll(/^([^\s]+\.png)$/gm)].map(m=>m[1]);
-    const textures=new Map(await Promise.all(pages.map(async name=>[name,(await this.texture('spine/'+name)).baseTexture])));
-    const atlas=await new Promise(resolve=>new TextureAtlas(text,(name,ready)=>ready(textures.get(name)),resolve));
-    const parser=new SkeletonJson(new AtlasAttachmentLoader(atlas));this.hero=new Spine(parser.readSkeletonData(json));
+    this.hero=await this.createSpine('spine','Lamar');
     this.hero.autoUpdate=false;this.hero.scale.set(0.83);this.hero.position.set(540-4.3*73.846,960+(1+.6)*73.846);this.hero.zIndex=200;
     this.root.addChild(this.hero);this.hero.state.setAnimation(0,'V_1/IDLE',true);this.hero.update(0);
     await this.area(this.sim.s.area);this.refreshOutfit();
+  }
+  async createSpine(folder,name){
+    const json=await this.files.json(`${folder}/${name}.json`),text=await this.files.text(`${folder}/${name}.atlas`);
+    const pages=[...text.matchAll(/^([^\s]+\.png)$/gm)].map(m=>m[1]);
+    const sizes=new Map([...text.matchAll(/^([^\s]+\.png)\r?\nsize:\s*(\d+),\s*(\d+)/gm)].map(m=>[m[1],[Number(m[2]),Number(m[3])]]));
+    const textures=new Map(await Promise.all(pages.map(async page=>{
+      let base=(await this.texture(folder+'/'+page)).baseTexture;const size=sizes.get(page);
+      // Unity's Android importer resized some atlas pages to powers of two.
+      // Restore the atlas coordinate space before the Spine region parser runs.
+      if(size&&(base.width!==size[0]||base.height!==size[1])){
+        const canvas=document.createElement('canvas');[canvas.width,canvas.height]=size;
+        canvas.getContext('2d').drawImage(base.resource.source,0,0,...size);base=BaseTexture.from(canvas);
+      }
+      return [page,base];
+    })));
+    const atlas=await new Promise(resolve=>new TextureAtlas(text,(name,ready)=>ready(textures.get(name)),resolve));
+    const parser=new SkeletonJson(new AtlasAttachmentLoader(atlas));const actor=new Spine(parser.readSkeletonData(json));actor.autoUpdate=false;return actor;
   }
   async area(area,onProgress){
     await this.files.loadGroup(`area-${area}`,onProgress);
@@ -75,7 +88,7 @@ export class World {
     this.applyAttachments();
   }
   applyAttachments(){
-    for(const [name,attachment] of this.override||[]){const slot=this.hero.skeleton.findSlot(name);if(!slot)continue;const a=attachment?this.hero.skeleton.getAttachmentByName(name,attachment):null;slot.setAttachment(a);}
+    for(const [name,attachment] of this.override||[]){const slot=this.hero.skeleton.findSlot(name);if(!slot)continue;const a=attachment&&!(this.storyEquipmentSlots?.has(name))?this.hero.skeleton.getAttachmentByName(name,attachment):null;slot.setAttachment(a);}
   }
   react(){
     const choice=['SPEAK_HEAD','SPEAK_ARM','EMOTION_LIKE','EMOTION_HAHA'][Math.floor(Math.random()*4)];

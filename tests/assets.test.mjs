@@ -15,3 +15,14 @@ test('original Spine atlas has every page and original outfit mappings use real 
 test('every original area scene references exported textures',()=>{
   for(let i=0;i<8;i++){const scene=JSON.parse(bytes(`areas/${i}/scene.json`));assert.ok(scene.length>=20);for(const part of scene)assert.ok(manifest.files[part.sprite.file],part.sprite.file);}
 });
+test('intro dialogue matches all eight actions and original animation names',()=>{
+  const {scene,positions}=JSON.parse(bytes('story/intro.json'));assert.equal(scene.frames.length,8);assert.equal(scene.texts.length,8);
+  const rigs={lamar:JSON.parse(bytes('spine/Lamar.json')),van:JSON.parse(bytes('story/Van.json'))};
+  for(const f of scene.frames)for(const action of f.actions){const [type,person,...name]=action.split('_');if(!rigs[person])continue;if(type==='em')assert.ok(rigs[person].animations[(person==='lamar'?'NAR/':'')+name.join('_').toUpperCase()],action);if(type==='pos')assert.ok(positions.some(p=>p.Id===name.join('_')),action);}
+  for(const m of bytes('story/Van.atlas').toString().matchAll(/^([^\s]+\.png)$/gm))assert.ok(manifest.files['story/'+m[1]],m[1]);
+  const map=JSON.parse(bytes('story/van-map.json'));for(const [attachment,slot] of map.C_0.pairs)if(attachment)assert.ok(rigs.van.skins[0].attachments[slot]?.[attachment],attachment);
+});
+test('original upgrade icon references resolve to exported UI images',()=>{
+  const icons=JSON.parse(bytes('story/upgrade-icons.json')),ui=JSON.parse(bytes('ui.json'));assert.equal(icons.length,16);
+  for(const name of icons)assert.ok(ui[name]&&manifest.files[ui[name].file],name);
+});

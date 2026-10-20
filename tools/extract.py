@@ -154,4 +154,6 @@ def main():
         packs.finish(source)
         (a.out/'extraction-report.json').write_bytes(encoded(dict(source=source,errors=errors,coreSpriteCount=len(sprites),configs=list(config))))
         print(f'Exported {len(packs.files)} files. {len(errors)} extraction errors.',flush=True)
+        from extract_story import append_story
+        append_story(root/'assets',a.layout_dlls,a.out)
 if __name__=='__main__':main()

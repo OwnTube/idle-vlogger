@@ -11,6 +11,13 @@ test('all reconstructed income levels remain finite and do not lose income at ar
 test('purchases require funds and preserve a nonnegative balance',()=>{
   const sim=new Simulation(config);assert.equal(sim.buy(0),false);sim.earn(sim.cost(0));assert.equal(sim.buy(0),true);assert.equal(sim.s.levels[0],1);assert.ok(sim.s.money>=0);sim.s.levels[0]=600;assert.equal(sim.buy(0),false);
 });
+test('native upgrade IDs apply to the right systems and purchases spend gold',()=>{
+  const sim=new Simulation(config),before=sim.rates();sim.s.gold=10000;sim.s.money=10000;
+  const gold=sim.s.gold,price=sim.upgradeCost(1);assert.equal(sim.buyUpgrade(1),true);assert.equal(sim.s.gold,gold-price);assert.equal(sim.s.money,10000);assert.ok(sim.rates().tap>before.tap);assert.equal(sim.rates().passive,before.passive);
+  sim.buyUpgrade(0);assert.ok(sim.rates().passive>before.passive);const cost=sim.cost(0);sim.buyUpgrade(14);assert.ok(sim.cost(0)<cost);
+  const basic=new Simulation(config);basic.holding=sim.holding=true;sim.buyUpgrade(8);for(let i=0;i<600;i++){basic.step(1/60);sim.step(1/60);}assert.ok(sim.s.battery>basic.s.battery);
+  sim.s.gold=0;assert.equal(sim.buyUpgrade(1),false);
+});
 test('offline income is bounded and cannot be claimed twice for the same timestamp',()=>{
   const sim=new Simulation(config);sim.s.savedAt=1000000;const amount=sim.offline(1000000+86400000);assert.equal(amount,sim.rates().passive*14400);assert.equal(sim.offline(1000000+86400000),0);
 });

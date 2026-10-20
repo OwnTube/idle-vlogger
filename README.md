@@ -1,6 +1,6 @@
 # Lamar – Idle Vlogger: browser reconstruction
 
-An **initial playable reconstruction**, built from the supplied Android game's original sprites, Spine animation rig, scene transforms and serialized configuration. The Android executable and Unity engine do **not** run in the browser. This is **not yet a complete 1:1 port**: gameplay formulas, scene composition, story playback and later systems need parity work.
+An **initial playable reconstruction**, built from the supplied Android game's original sprites, Spine animation rigs, scene transforms, dialogue and serialized configuration. The Android executable and Unity engine do **not** run in the browser. This is **not yet a complete 1:1 port**: complete gameplay balance, scene composition, later story scenes and other systems need parity work.
 
 ## Run
 
@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL Vite prints. Tap or hold the scene to earn money; Space and gamepad A also record. Use the bottom menus to buy property, equipment, style and skill upgrades. Settings contains music, sound, save export/import and fullscreen. Saves are local to the browser and origin.
+Open the URL Vite prints. The original eight-frame short intro plays first; Continue, Space, Enter or gamepad A advances it. Tap or hold the scene to earn money; Space and gamepad A also record. Use the bottom menus to buy property, equipment, style and skill upgrades. Settings contains intro replay, music, sound, save export/import and fullscreen. Saves are local to the browser and origin. Gold upgrade purchases use their original currency; gold reward sources are still missing.
 
 ```sh
 npm test
@@ -21,11 +21,11 @@ npm run preview
 
 ## What is original and what is reconstructed
 
-Original: the full Lamar Spine 3.8 rig and animation timelines, 112 outfit/attachment mappings, UI sprites, fonts, music and selected sound effects, eight areas' sprite layers/transforms/pivots, and serialized configuration values. The extraction manifest identifies the input APK by SHA-256.
+Original: the full Lamar Spine 3.8 rig and animation timelines, 112 Lamar outfit/attachment mappings, Van's rig, the short intro's dialogue/actions, 71 recovered English story text assets, UI sprites/labels, fonts, music and selected sound effects, eight areas' sprite layers/transforms/pivots, and serialized configuration values. Only the short intro is playable so far. The extraction manifest identifies the input APK by SHA-256.
 
-New browser code: PixiJS WebGL rendering, scene/attachment selection, game rules, UI layout, input, audio playback, fixed-step simulation and persistence. Original configuration values do not prove that a newly written formula matches native behavior. Read [the parity checklist](docs/PARITY.md) before treating this as an accurate preservation build.
+New browser code: PixiJS WebGL rendering, scene/attachment selection, game rules, UI layout, input, audio playback, fixed-step simulation and persistence. Item income, costs, discounts, and all upgrade price/value calculations now match selected original ARM64 functions executed in Unicorn. That verification covers arithmetic, not the complete game's behavior. Read [the calculation evidence](docs/NATIVE-RULES.md). Read [the parity checklist](docs/PARITY.md) before treating this as an accurate preservation build.
 
-The asset payload is about 53 MB. Independent packs are at most 4 MiB. Loading streams each response with byte progress, checks its SHA-256, and exposes files through a virtual filesystem. Area packs load on demand. JSON and WAV files are gzip compressed inside the packs; images are lossless WebP. The original Android ASTC textures are decoded during extraction, not on the user's device.
+The asset payload is about 54 MB. Independent packs are at most 4 MiB. Loading streams each response with byte progress, checks its SHA-256, and exposes files through a virtual filesystem. Area packs load on demand. JSON and WAV files are gzip compressed inside the packs; images are lossless WebP. The original Android ASTC textures are decoded during extraction, not on the user's device.
 
 ## Inspection and route
 
@@ -59,9 +59,11 @@ Layout DLLs have empty methods; they recover field definitions/attributes needed
 ```sh
 npx playwright install chromium
 npm run test:browser
+npm run build
+npm run test:browser -- --build
 ```
 
-For an already installed Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. The test launches a local server and browser in the same process environment, records income, purchases an upgrade, reloads a persisted save, exports/imports a save and checks invalid input. It writes internal screenshots and a result under `.local/`.
+For an already installed Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. The test launches a local server and browser in the same process environment, plays through the introduction, records income, purchases an item, reloads a persisted save, exports/imports a save and checks invalid input. The `--build` mode tests the production build under `/idle-vlogger/` to check subdirectory hosting. It writes internal screenshots and a result under `.local/`.
 
 Native Android comparisons, a full campaign playthrough, real mobile touch hardware and gamepad hardware have not been verified. See `docs/VALIDATION.md` for exactly which checks passed.
 
