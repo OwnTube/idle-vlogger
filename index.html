@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#45bad2"><title>Lamar – Idle Vlogger | Browser Reconstruction</title></head>
+<body>
+<main id="game" aria-label="Lamar Idle Vlogger">
+  <div id="world"></div>
+  <div id="hud" hidden>
+    <header><div class="currencies"><div><img data-icon="Money_icon" alt=""><strong id="money">$0</strong></div><div><img data-icon="Gold_icon" alt=""><strong>0</strong></div></div><button id="settings" class="icon-button" aria-label="Settings"><img data-icon="Settings_icon" alt="Settings"></button></header>
+    <button id="subscribers" aria-label="Subscriber progress"><img data-icon="Subs_icon" alt=""><span><strong id="subs">0</strong> subscribers</span><span class="subtrack"><span id="subfill"></span></span></button>
+    <button id="relocate" aria-label="Area progress"><img data-icon="Area_icon" alt=""><span id="area-name">Industrial district</span><small id="area-progress">0%</small></button>
+    <div id="income"><span id="passive">$0.01 / sec</span><span id="tap-rate">$0.01 / tap</span></div>
+    <button id="record" aria-label="Record a video. Tap or hold. Space or gamepad A also records."><span id="record-label">TAP OR HOLD TO VLOG</span><span class="battery"><span id="battery-fill"></span></span></button>
+    <section id="panel" hidden aria-label="Upgrades"><div class="panel-head"><strong id="panel-title">Properties</strong><button id="close-panel" aria-label="Close upgrades">×</button></div><div id="items"></div></section>
+    <nav aria-label="Game menus"><button data-tab="0"><img data-icon="Properties_icon" alt=""><span>Property</span></button><button data-tab="1"><img data-icon="Equipments_icon" alt=""><span>Equipment</span></button><button data-tab="2"><img data-icon="Styles_icon" alt=""><span>Style</span></button><button data-tab="3"><img data-icon="Skills_icon" alt=""><span>Skills</span></button><button data-tab="4"><img data-icon="Boosters_icon" alt=""><span>Upgrades</span></button></nav>
+  </div>
+  <section id="loading" aria-live="polite"><h1>LAMAR</h1><h2>IDLE VLOGGER</h2><p id="loading-text">Loading original game resources…</p><progress id="progress" max="1" value="0"></progress><small>Browser reconstruction · work in progress</small></section>
+  <div id="toast" role="status"></div>
+  <dialog id="settings-dialog"><h2>Settings</h2><label><input id="sound" type="checkbox"> Sound effects</label><label><input id="music" type="checkbox"> Music</label><button id="export-save">Export save</button><button id="import-save">Import save</button><input id="save-file" type="file" accept="application/json,.json" hidden><button id="fullscreen">Fullscreen</button><p id="save-status">Progress saves automatically in this browser.</p><p class="smallprint">Early asset-based reconstruction. Story scenes, events, purchases and gameplay balance are not yet at parity with Android.</p><button id="close-settings">Back to game</button></dialog>
+</main>
+<script type="module" src="/src/main.js"></script></body></html>
