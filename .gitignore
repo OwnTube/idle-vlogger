@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.local/
+*.apk
+__pycache__/
