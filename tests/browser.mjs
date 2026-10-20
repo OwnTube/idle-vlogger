@@ -13,7 +13,13 @@ try{
   report.initial=await page.evaluate(()=>window.gameStatus());assert.ok(report.initial.originalAnimations>100);
   await page.waitForFunction(()=>window.gameStatus().introActive);
   await page.screenshot({path:'.local/intro-desktop.png'});
-  for(let i=0;i<8;i++){assert.equal((await page.evaluate(()=>window.gameStatus())).introFrame,i);await page.locator('#intro-next').click();}
+  let introSteps=0;
+  while((await page.evaluate(()=>window.gameStatus())).introActive){
+    assert.ok(++introSteps<40);const frame=(await page.evaluate(()=>window.gameStatus())).introFrame;
+    if(frame===22)await page.screenshot({path:'.local/full-intro-harry-desktop.png'});
+    await page.locator(await page.locator('#intro-curtain').isVisible()?'#intro-curtain':'#intro-next').click();
+  }
+  report.originalIntroSteps=introSteps;assert.equal(introSteps,27);
   assert.equal((await page.evaluate(()=>window.gameStatus())).introActive,false);
   await page.screenshot({path:'.local/desktop.png'});
   const record=page.locator('#record');const box=await record.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height*.45);await page.mouse.down();
@@ -29,7 +35,19 @@ try{
   await page.locator('#settings').click();await page.locator('#save-file').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{"version":1}')});await page.waitForFunction(()=>document.querySelector('#toast').textContent.includes('Invalid'));
   await page.locator('#save-file').setInputFiles('.local/browser-save.json');await page.waitForFunction(()=>document.querySelector('#toast').textContent==='Save imported.');
   await page.locator('#close-settings').click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.local/mobile.png'});
-  await page.locator('#settings').click();await page.locator('#replay-intro').click();await page.locator('#intro-next').click();await page.screenshot({path:'.local/intro-mobile.png'});await page.locator('#intro-skip').click();
+  await page.locator('#settings').click();await page.locator('#intro-version').selectOption('1fast');await page.locator('#replay-intro').click();await page.locator('#intro-next').click();await page.screenshot({path:'.local/intro-mobile.png'});await page.locator('#intro-skip').click();
+  await page.setViewportSize({width:1200,height:1000});await page.locator('#settings').click();await page.locator('#intro-version').selectOption('1choices');await page.locator('#replay-intro').click();await page.screenshot({path:'.local/choices-desktop.png'});
+  let choiceCount=0,steps=0;
+  while((await page.evaluate(()=>window.gameStatus())).introActive){
+    assert.ok(++steps<100);const options=page.locator('#intro-choices button');
+    if(await options.count()){choiceCount++;if(choiceCount===3)await page.screenshot({path:'.local/choices-harry-desktop.png'});await options.last().click();}
+    else await page.locator(await page.locator('#intro-curtain').isVisible()?'#intro-curtain':'#intro-next').click();
+  }
+  assert.equal(choiceCount,3);report.storyChoices=(await page.evaluate(()=>window.gameStatus())).storyVariables;
+  assert.deepEqual(report.storyChoices,{intro_van_response:'joke_about_it',intro_phone_plan:'mafia',intro_harry_negotiation:'pressure'});
+  await page.locator('#settings').click();const storyDownload=page.waitForEvent('download');await page.locator('#export-save').click();await (await storyDownload).saveAs('.local/browser-story-save.json');
+  assert.deepEqual(JSON.parse(fs.readFileSync('.local/browser-story-save.json')).storyVars,report.storyChoices);
+  await page.reload();await page.waitForFunction(()=>window.gameStatus?.().loaded,null,{timeout:90000});assert.deepEqual((await page.evaluate(()=>window.gameStatus())).storyVariables,report.storyChoices);
   assert.deepEqual(errors,[]);report.errors=errors;report.passed=true;console.log(JSON.stringify(report,null,2));
 }catch(error){report.passed=false;report.error=error.stack;report.errors=errors;console.error(JSON.stringify(report,null,2));process.exitCode=1;}
 finally{fs.writeFileSync('.local/browser-report.json',JSON.stringify(report,null,2));await browser?.close();if(production)await new Promise((resolve,reject)=>server.httpServer.close(error=>error?reject(error):resolve()));else await server.close();}

@@ -5,7 +5,7 @@ Executed 2026-10-20 on Linux x86-64, Node 24.19.0.
 | Check | Result |
 | --- | --- |
 | APK ZIP and every native ELF inspection | Completed; recorded in `inspection.json` |
-| Resource conversion | 1,056 virtual files; six reported singular-matrix sprite failures |
+| Resource conversion | 1,060 virtual files; six reported singular-matrix sprite failures |
 | Complete Spine atlas/page/attachment checks | Passed; all 112 mapping entries resolve to real slots/attachments |
 | Pack size and SHA-256 integrity | Passed; each pack at most 4 MiB |
 | Every virtual file span / decompression | Passed |
@@ -16,8 +16,9 @@ Executed 2026-10-20 on Linux x86-64, Node 24.19.0.
 | Save input validation | Passed |
 | Native item income / costs / discounts | Exact agreement with 601 / 600 / 3,600 ARM64 reference results |
 | All 16 upgrade price/value ranges | Exact agreement with original ARM64 function execution; see `NATIVE-RULES.md` |
-| Original short intro | All eight frames completed; saved completion, replay and skip checked |
-| Unit/resource suite | **16/16 passed** |
+| Original introductions | Full 27-frame intro, choice route with saved decisions/reload, short replay/skip checked in production browser |
+| Branch coverage | All 12 choice-intro routes reach the end and retain three decisions in the unit suite |
+| Unit/resource suite | **19/19 passed** |
 | Vite production build | **Passed** |
 | Chrome Headless Shell 155.0.8059.84 launch | **Passed**, WebGL via SwiftShader |
 | Original character rig | Loaded; **169 animations** |
@@ -33,7 +34,7 @@ Executed 2026-10-20 on Linux x86-64, Node 24.19.0.
 
 The first browser downloads/launches failed: an incomplete full-Chrome package, a sandbox Unix-socket restriction on full Chrome, and a Chrome 131 headless-shell crash. The successful test used the current standalone headless shell, downloaded intact and launched without changing the host permission policy. These failures are not treated as successful runs.
 
-The build emits a warning about its approximately 622 kB JavaScript bundle (approximately 186 kB gzip). This is not a build failure. It includes PixiJS and the Spine 3.8 runtime.
+The build emits a warning about its approximately 626 kB JavaScript bundle (approximately 187 kB gzip). This is not a build failure. It includes PixiJS and the Spine 3.8 runtime.
 
 ![First browser milestone](screenshots/milestone-01-desktop.png)
 
@@ -50,3 +51,9 @@ Tests validate implementation consistency and basic browser operation. They do n
 ![Native-checked item prices](screenshots/milestone-03-properties.png)
 
 ![Original upgrade names, icons and gold prices](screenshots/milestone-03-upgrades.png)
+
+## Milestone 4
+
+![Full original introduction with Harry](screenshots/milestone-04-harry.png)
+
+![Original dialogue-choice branch](screenshots/milestone-04-choices.png)

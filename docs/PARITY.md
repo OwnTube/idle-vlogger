@@ -13,7 +13,7 @@ This is an initial playable reconstruction, not a finished 1:1 game port.
 | Upgrade effects | All 16 price/value functions checked; eight effects connected; purchases spend gold | Gold reward sources and remaining effects are missing; activation conditions/integration need native checks |
 | Holding/battery | Fixed-step tap interval, drain and restoration | Compare exact native formulas and edge conditions |
 | Area progression | Eight regions, upgrade-based relocation | Verify native locks, rewards, timing and all region transitions |
-| Story scenes/choices | Original 8-frame short intro, two animated actors and replay; 71 English dialogue assets recovered | Remaining scenes/choices, triggers, camera, UI, transitions and native comparison; intro grounding is reconstructed |
+| Story scenes/choices | Original full/choice/short introductions, three animated actors, intertitles, replay and saved decisions; 60 scene scripts and 71 English dialogue assets recovered | Remaining campaign scenes/choices, requirements/rewards, triggers, camera, UI and native comparison; intro grounding/presentation are reconstructed |
 | Tasks/events/pets/races | Some configuration/art recovered | Gameplay not implemented |
 | Audio | Original music and selected effects via Web Audio | Complete all native sound triggers and levels |
 | Saves | Browser IndexedDB, bounded offline income, JSON export/import | Android save conversion is not supported; four-hour offline cap is provisional |

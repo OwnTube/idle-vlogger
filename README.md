@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL Vite prints. The original eight-frame short intro plays first; Continue, Space, Enter or gamepad A advances it. Tap or hold the scene to earn money; Space and gamepad A also record. Use the bottom menus to buy property, equipment, style and skill upgrades. Settings contains intro replay, music, sound, save export/import and fullscreen. Saves are local to the browser and origin. Gold upgrade purchases use their original currency; gold reward sources are still missing.
+Open the URL Vite prints. The original 27-frame intro plays first; Continue, Space, Enter or gamepad A advances it. Tap or hold the scene to earn money; Space and gamepad A also record. Use the bottom menus to buy property, equipment, style and skill upgrades. Settings contains intro replay, music, sound, save export/import and fullscreen. Saves are local to the browser and origin. Gold upgrade purchases use their original currency; gold reward sources are still missing.
 
 ```sh
 npm test
@@ -21,7 +21,7 @@ npm run preview
 
 ## What is original and what is reconstructed
 
-Original: the full Lamar Spine 3.8 rig and animation timelines, 112 Lamar outfit/attachment mappings, Van's rig, the short intro's dialogue/actions, 71 recovered English story text assets, UI sprites/labels, fonts, music and selected sound effects, eight areas' sprite layers/transforms/pivots, and serialized configuration values. Only the short intro is playable so far. The extraction manifest identifies the input APK by SHA-256.
+Original: the full Lamar Spine 3.8 rig and animation timelines, 112 Lamar outfit/attachment mappings, Van and Harry's rigs, the full/choice/short intro dialogue/actions, 60 decoded scene scripts, 71 recovered English story text assets, UI sprites/labels, fonts, music and selected sound effects, eight areas' sprite layers/transforms/pivots, and serialized configuration values. The 27-frame original intro, its 52-frame choice variant (12 routes), and the 8-frame short version are playable. Settings selects a replay variant. Other decoded scenes are not playable yet. The extraction manifest identifies the input APK by SHA-256.
 
 New browser code: PixiJS WebGL rendering, scene/attachment selection, game rules, UI layout, input, audio playback, fixed-step simulation and persistence. Item income, costs, discounts, and all upgrade price/value calculations now match selected original ARM64 functions executed in Unicorn. That verification covers arithmetic, not the complete game's behavior. Read [the calculation evidence](docs/NATIVE-RULES.md). Read [the parity checklist](docs/PARITY.md) before treating this as an accurate preservation build.
 
@@ -63,7 +63,7 @@ npm run build
 npm run test:browser -- --build
 ```
 
-For an already installed Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. The test launches a local server and browser in the same process environment, plays through the introduction, records income, purchases an item, reloads a persisted save, exports/imports a save and checks invalid input. The `--build` mode tests the production build under `/idle-vlogger/` to check subdirectory hosting. It writes internal screenshots and a result under `.local/`.
+For an already installed Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. The test launches a local server and browser in the same process environment, plays through the full introduction and a choice route, verifies saved decisions, records income, purchases an item, reloads a persisted save, exports/imports a save and checks invalid input. The `--build` mode tests the production build under `/idle-vlogger/` to check subdirectory hosting. It writes internal screenshots and a result under `.local/`.
 
 Native Android comparisons, a full campaign playthrough, real mobile touch hardware and gamepad hardware have not been verified. See `docs/VALIDATION.md` for exactly which checks passed.
 

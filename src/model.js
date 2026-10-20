@@ -2,11 +2,15 @@
 import {NativeRules} from './rules.js';
 export const STUFFS=['House','Car','Road','Yard','Statue','Cam','Tripod','Mic','Light','Clothes','Hair','Watch','Skill0','Skill1','Skill2','Skill3','Skill4'];
 export const NAMES=['House','Car','Road','Yard','Statue','Camera','Tripod','Microphone','Lighting','Clothes','Haircut','Watch','Acting','Storytelling','Editing','Charisma','Creativity'];
-export const fresh = ()=>({version:1,area:0,money:0,totalMoney:0,gold:0,subs:0,levels:Array(17).fill(0),upgrades:Array(16).fill(0),battery:1,ticks:0,savedAt:Date.now(),sound:true,music:false,introDone:false});
+export const fresh = ()=>({version:1,area:0,money:0,totalMoney:0,gold:0,subs:0,levels:Array(17).fill(0),upgrades:Array(16).fill(0),battery:1,ticks:0,savedAt:Date.now(),sound:true,music:false,introDone:false,storyVars:{}});
 export function validateSave(input,config){
   if(!input||input.version!==1)throw Error('This file is not a supported browser save.');
   for(const key of ['money','totalMoney','subs','ticks'])if(!Number.isFinite(input[key])||input[key]<0||input[key]>1e300)throw Error(`Invalid ${key} in save.`);
   if(input.gold!==undefined&&(!Number.isSafeInteger(input.gold)||input.gold<0))throw Error('Invalid gold in save.');
+  if(input.storyVars!==undefined){
+    if(!input.storyVars||typeof input.storyVars!=='object'||Array.isArray(input.storyVars)||Object.keys(input.storyVars).length>64)throw Error('Invalid story variables in save.');
+    for(const [key,value] of Object.entries(input.storyVars))if(!/^[a-zA-Z0-9_.:-]{1,128}$/.test(key)||['__proto__','constructor','prototype'].includes(key)||!(typeof value==='boolean'||typeof value==='string'&&value.length<=2048||typeof value==='number'&&Number.isFinite(value)))throw Error('Invalid story variable in save.');
+  }
   if(!Number.isInteger(input.area)||input.area<0||input.area>7)throw Error('Invalid area in save.');
   for(const [key,length,max] of [['levels',17,600],['upgrades',16,1000]])
     if(!Array.isArray(input[key])||input[key].length!==length||input[key].some(v=>!Number.isInteger(v)||v<0||v>max))throw Error(`Invalid ${key} in save.`);

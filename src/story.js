@@ -1,61 +1,78 @@
-// Frame actions, dialogue, positions and both character rigs come from the APK.
-// This player supports the eight-frame 1fast intro; branching scenes are separate.
+import {StoryFlow} from './story-flow.js';
+// Scripts, branch targets, dialogue, positions and all three rigs are original.
+// Camera composition, grounding and HTML presentation are still reconstructed.
+const $=s=>document.querySelector(s);
 export class Intro {
-  constructor(world,files,onFinish){this.world=world;this.files=files;this.onFinish=onFinish;this.active=false;this.frame=-1;}
+  constructor(world,files,onFinish,variables=()=>({})){this.world=world;this.files=files;this.onFinish=onFinish;this.variables=variables;this.active=false;}
+  get frame(){return this.flow?.index??-1;}
+  get sceneId(){return this.flow?.scene.id??null;}
   async load(){
-    this.data=await this.files.json('story/intro.json');
-    this.van=await this.world.createSpine('story','Van');this.van.zIndex=201;this.van.visible=false;this.world.root.addChild(this.van);
-    this.map=await this.files.json('story/van-map.json');
-    this.pairs=this.map.C_0.pairs;
+    this.data=await this.files.json('story/intro.json');this.actors={lamar:this.world.hero};
+    for(const name of ['Van','Harry']){const actor=await this.world.createSpine('story',name);actor.visible=false;this.world.root.addChild(actor);this.actors[name.toLowerCase()]=actor;}
+    this.pairs=(await this.files.json('story/van-map.json')).C_0.pairs;
   }
-  start(){
-    this.active=true;this.frame=-1;
-    const hero=this.world.hero;this.previous={x:hero.x,y:hero.y,scale:hero.scale.x};
+  start(id='1'){
+    const scene=this.data.scenes[id];if(!scene)throw Error('Unknown original introduction');
+    this.flow=new StoryFlow(scene,this.variables());this.active=true;this.curtains=false;this.timer=null;
+    const hero=this.world.hero;this.previous={x:hero.x,y:hero.y,scale:hero.scale.x,z:hero.zIndex};this.floorOffsets={};
     this.world.storyEquipmentSlots=new Set(Object.entries(this.world.c.spine_map_lamar).filter(([key])=>/^(CAM|TRIPOD|MIC|LIGHT)_/.test(key)).flatMap(([,v])=>v.pairs.map(p=>p[1])));
-    this.floorOffset=0;
-    this.position(hero,'l_0');this.position(this.van,'r_0');this.van.visible=true;
-    hero.state.setAnimation(0,'NAR/CALM',true);this.van.state.setAnimation(0,'CALM',true);
-    hero.update(0);this.world.applyAttachments();this.step(0);
-    // These rigs use different origins. Ground alignment is reconstructed until
-    // the native narrative camera and parent-transform behavior are reproduced.
-    this.floorOffset=hero.getLocalBounds().bottom*hero.scale.y-this.van.getLocalBounds().bottom*this.van.scale.y;
-    document.querySelector('#hud').hidden=true;document.querySelector('#intro').hidden=false;this.advance();
+    for(const [person,actor] of Object.entries(this.actors)){
+      this.position(person,person==='lamar'?'l_0':'r_out');actor.state.setAnimation(0,person==='lamar'?'NAR/CALM':'CALM',true);actor.update(0);
+    }
+    this.world.applyAttachments();this.attachVan();
+    // Native narrative camera/parent transforms are not fully reproduced yet.
+    const floor=hero.getLocalBounds().bottom*hero.scale.y;
+    for(const [person,actor] of Object.entries(this.actors))if(person!=='lamar')this.floorOffsets[person]=floor-actor.getLocalBounds().bottom*actor.scale.y;
+    $('#hud').hidden=true;$('#intro').hidden=false;this.show();
   }
-  position(actor,id){
-    const p=this.data.positions.find(p=>p.Id===id);if(!p)throw Error(`Unknown original story position ${id}`);
-    const unit=1920/26;actor.scale.set(unit*.01);actor.position.set(540+p.PersonPos.x*unit,960+(1-p.PersonPos.y)*unit+(actor===this.van?(this.floorOffset||0):0));
+  position(person,id){
+    const actor=this.actors[person],p=this.data.positions.find(p=>p.Id===id);if(!actor||!p)throw Error(`Unknown story position ${person}:${id}`);
+    const unit=1920/26;actor.scale.set(unit*.01);actor.position.set(540+p.PersonPos.x*unit,960+(1-p.PersonPos.y)*unit+(this.floorOffsets[person]||0));actor.zIndex=200+p.SortingOrderOffset;actor.visible=!id.endsWith('_out');
   }
-  advance(){
-    if(!this.active)return;
-    const previous=this.data.scene.frames[this.frame];this.frame=previous?.next>=0?previous.next:this.frame+1;
-    if(this.frame>=this.data.scene.frames.length){this.finish();return;}
-    let speaker='lamar';
-    for(const action of this.data.scene.frames[this.frame].actions){
-      const parts=action.split('_'),type=parts.shift(),person=parts.shift();
-      const actor=person==='lamar'?this.world.hero:person==='van'?this.van:null;
-      if(type==='pos'&&actor)this.position(actor,parts.join('_'));
-      if(type==='speak')speaker=person;
-      if(type==='em'&&actor){
-        const animation=(person==='lamar'?'NAR/':'')+parts.join('_').toUpperCase();
-        if(!actor.spineData.findAnimation(animation))throw Error(`Missing original story animation ${animation}`);
+  text(value){
+    const config=this.world.c.ab17_main_narrative;
+    return value.replace(/<sprite\s+name=money>/g,'$').replaceAll('{VAR_C}',config.InTextVarC.toLocaleString('en-US')).replaceAll('{VAR_X}',config.InTextVarX.toLocaleString('en-US'));
+  }
+  show(){
+    if(this.flow.done){this.finish();return;}
+    let speaker='lamar';this.timer=null;
+    for(const action of this.flow.frame.actions){
+      const [type,person,...name]=action.split('_'),actor=this.actors[person];
+      if(type==='pos')this.position(person,name.join('_'));
+      else if(type==='speak')speaker=person;
+      else if(type==='em'){
+        const animation=(person==='lamar'?'NAR/':'')+name.join('_').toUpperCase();
+        if(!actor?.spineData.findAnimation(animation))throw Error(`Missing original story animation ${person}:${animation}`);
         actor.state.setAnimation(0,animation,true);
       }
+      else if(type==='curtains')this.curtains=person==='on';
+      else if(type==='auto'&&person==='play')this.timer=Number(name[0]);
+      else if(type!=='cl-atts'||person!=='van'||name[0]!=='0')throw Error(`Unsupported intro action ${action}`);
     }
-    document.querySelector('#intro-speaker').textContent=speaker==='van'?'Van':'Lamar';
-    document.querySelector('#intro-line').textContent=this.data.scene.texts[this.frame];
-    document.querySelector('#intro-count').textContent=`${this.frame+1} / ${this.data.scene.frames.length}`;
-    document.querySelector('#intro-next-label').textContent=this.frame===this.data.scene.frames.length-1?'Start vlogging':'Continue';
-    document.querySelector('#intro').dataset.speaker=speaker;
-    this.step(0);this.world.hero.update(0);this.world.applyAttachments();
+    const text=this.text(this.flow.scene.texts[this.frame]);
+    $('#intro-speaker').textContent=speaker==='no'?'':speaker[0].toUpperCase()+speaker.slice(1);$('#intro-line').textContent=text;
+    $('#intro-count').textContent=`${this.frame+1} / ${this.flow.scene.frames.length}`;$('#intro-next-label').textContent=this.frame===this.flow.scene.frames.length-1?'Start vlogging':'Continue';
+    $('#intro-dialogue').hidden=this.curtains;$('#intro-curtain').hidden=!this.curtains;$('#intro-curtain').textContent=text;
+    const choices=this.flow.frame.choices;$('#intro-next').hidden=choices.length>0;$('#intro-choices').hidden=!choices.length;$('#intro-choices').replaceChildren();
+    choices.forEach((option,index)=>{const b=document.createElement('button');b.textContent=this.flow.scene.labels[option.key];b.dataset.choice=option.key;b.onclick=()=>{this.flow.choose(index);this.show();};$('#intro-choices').append(b);});
+    for(const actor of Object.values(this.actors))actor.update(0);this.attachVan();this.world.applyAttachments();
+    if(this.curtains)$('#intro-curtain').focus({preventScroll:true});else (choices.length?$('#intro-choices button'):$('#intro-next')).focus({preventScroll:true});
+  }
+  advance(){if(this.active&&this.flow.advance())this.show();}
+  attachVan(){
+    const van=this.actors.van;
+    for(const [attachment,name] of this.pairs){const slot=van.skeleton.findSlot(name);if(slot)slot.setAttachment(attachment?van.skeleton.getAttachmentByName(name,attachment):null);}
   }
   step(dt){
-    if(!this.active)return;this.van.update(dt);
-    for(const [attachment,slotName] of this.pairs){const slot=this.van.skeleton.findSlot(slotName);if(slot)slot.setAttachment(attachment?this.van.skeleton.getAttachmentByName(slotName,attachment):null);}
+    if(!this.active)return;
+    for(const [person,actor] of Object.entries(this.actors))if(person!=='lamar')actor.update(dt);this.attachVan();
+    if(this.timer!==null){this.timer-=dt;if(this.timer<=0)this.advance();}
   }
   finish(){
-    if(!this.active)return;this.active=false;this.van.visible=false;
-    this.world.storyEquipmentSlots=null;this.world.hero.position.set(this.previous.x,this.previous.y);this.world.hero.scale.set(this.previous.scale);
-    this.world.hero.skeleton.setToSetupPose();this.world.hero.state.setAnimation(0,this.world.pose+'/IDLE',true);this.world.hero.update(0);this.world.refreshOutfit();
-    document.querySelector('#intro').hidden=true;document.querySelector('#hud').hidden=false;this.onFinish();
+    if(!this.active)return;this.active=false;this.timer=null;
+    for(const [person,actor] of Object.entries(this.actors))if(person!=='lamar')actor.visible=false;
+    const hero=this.world.hero;this.world.storyEquipmentSlots=null;hero.position.set(this.previous.x,this.previous.y);hero.scale.set(this.previous.scale);hero.zIndex=this.previous.z;
+    hero.skeleton.setToSetupPose();hero.state.setAnimation(0,this.world.pose+'/IDLE',true);hero.update(0);this.world.refreshOutfit();
+    $('#intro').hidden=true;$('#hud').hidden=false;this.onFinish(Object.fromEntries(Object.entries(this.flow.variables)));
   }
 }

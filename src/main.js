@@ -40,8 +40,8 @@ async function start(){
   $('#loading-text').textContent='Preparing original character animations…';await world.init();
   $('#loading-text').textContent='Loading original introduction…';await files.loadGroup('story',n=>$('#progress').value=n);
   const strings=await files.json('story/ui-en.json'),upgradeIcons=await files.json('story/upgrade-icons.json');
-  const intro=new Intro(world,files,()=>{state.introDone=true;save();$('#record').focus({preventScroll:true});});await intro.load();
-  $('#intro-next').onclick=()=>intro.advance();$('#intro-skip').onclick=()=>intro.finish();
+  const intro=new Intro(world,files,variables=>{state.introDone=true;state.storyVars=variables;save();$('#record').focus({preventScroll:true});},()=>state.storyVars);await intro.load();
+  $('#intro-next').onclick=()=>intro.advance();$('#intro-curtain').onclick=()=>intro.advance();$('#intro-skip').onclick=()=>intro.finish();
   const aliases={Money_icon:['Money_icon','cash_icon','money_icon'],Subs_icon:['Subscribers_icon','Subs_icon','Subs_bar_icon'],Styles_icon:['Styles_icon','Style_icon'],Boosters_icon:['Boosters_icon','Upgrade-new_tapInc0_icon','Upgrade-old_tapInc0_icon']};
   async function icon(name){const entry=(aliases[name]||[name]).map(n=>icons[n]).find(Boolean);return entry?files.url(entry.file):null;}
   async function setIcon(img,name){const url=await icon(name);if(url){img.src=url;img.hidden=false;}else img.hidden=true;}
@@ -95,7 +95,7 @@ async function start(){
   }
   $('#settings').onclick=()=>{release();$('#sound').checked=state.sound;$('#music').checked=state.music;$('#settings-dialog').showModal();};
   $('#close-settings').onclick=()=>$('#settings-dialog').close();
-  $('#replay-intro').onclick=()=>{$('#settings-dialog').close();release();intro.start();$('#intro-next').focus({preventScroll:true});};
+  $('#replay-intro').onclick=()=>{$('#settings-dialog').close();release();intro.start($('#intro-version').value);};
   $('#sound').onchange=()=>{state.sound=$('#sound').checked;save();};
   $('#music').onchange=()=>{state.music=$('#music').checked;audio.music().catch(error=>toast(error.message));save();};
   $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('#game').requestFullscreen();}catch{toast('Fullscreen is unavailable in this browser.');}};
@@ -122,9 +122,9 @@ async function start(){
   document.addEventListener('visibilitychange',async()=>{release();if(document.hidden)await save();else{const amount=sim.offline(Date.now());previous=performance.now();clock.accumulator=0;if(amount>.01)toast('Offline income: $'+format(amount));draw();}});
   setInterval(save,5000);window.addEventListener('pagehide',()=>{release();save();});
   // Test access is read-only and intentionally does not expose currency mutation.
-  window.gameStatus=()=>({loaded:true,area:state.area,money:state.money,subs:state.subs,battery:state.battery,ticks:state.ticks,levels:[...state.levels],renderer:world.app.renderer.type,originalAnimations:world.hero.spineData.animations.length,introActive:intro.active,introFrame:intro.frame});
+  window.gameStatus=()=>({loaded:true,area:state.area,money:state.money,subs:state.subs,battery:state.battery,ticks:state.ticks,levels:[...state.levels],renderer:world.app.renderer.type,originalAnimations:world.hero.spineData.animations.length,introActive:intro.active,introFrame:intro.frame,introSceneId:intro.sceneId,storyVariables:{...state.storyVars}});
   $('#loading').hidden=true;$('#hud').hidden=false;draw();requestAnimationFrame(frame);await save();
-  if(!state.introDone){release();intro.start();$('#intro-next').focus({preventScroll:true});}
+  if(!state.introDone){release();intro.start();}
   if(earned>.01)toast('Welcome back! Offline income: $'+format(earned));
 }
 start().catch(error=>{console.error(error);$('#loading-text').textContent=error.message;$('#loading-text').classList.add('error');$('#progress').hidden=true;});

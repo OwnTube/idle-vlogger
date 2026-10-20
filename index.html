@@ -4,8 +4,8 @@
 <main id="game" aria-label="Lamar Idle Vlogger">
   <div id="world"></div>
   <section id="intro" role="dialog" aria-label="Original introduction" aria-modal="true" hidden>
-    <button id="intro-skip">Skip intro</button>
-    <div id="intro-dialogue"><strong id="intro-speaker"></strong><p id="intro-line" aria-live="polite"></p><button id="intro-next"><span id="intro-count"></span><span id="intro-next-label">Continue</span><span aria-hidden="true">▶</span></button></div>
+    <button id="intro-curtain" hidden aria-label="Continue intertitle"></button><button id="intro-skip">Skip intro</button>
+    <div id="intro-dialogue"><strong id="intro-speaker"></strong><p id="intro-line" aria-live="polite"></p><div id="intro-choices" role="group" aria-label="Dialogue choices" hidden></div><button id="intro-next"><span id="intro-count"></span><span id="intro-next-label">Continue</span><span aria-hidden="true">▶</span></button></div>
   </section>
   <div id="hud" hidden>
     <header><div class="currencies"><div><img data-icon="Money_icon" alt=""><strong id="money">$0</strong></div><div><img data-icon="Gold_icon" alt=""><strong id="gold">0</strong></div></div><button id="settings" class="icon-button" aria-label="Settings"><img data-icon="Settings_icon" alt="Settings"></button></header>
@@ -18,6 +18,6 @@
   </div>
   <section id="loading" aria-live="polite"><h1>LAMAR</h1><h2>IDLE VLOGGER</h2><p id="loading-text">Loading original game resources…</p><progress id="progress" max="1" value="0"></progress><small>Browser reconstruction · work in progress</small></section>
   <div id="toast" role="status"></div>
-  <dialog id="settings-dialog"><h2>Settings</h2><label><input id="sound" type="checkbox"> Sound effects</label><label><input id="music" type="checkbox"> Music</label><button id="replay-intro">Replay introduction</button><button id="export-save">Export save</button><button id="import-save">Import save</button><input id="save-file" type="file" accept="application/json,.json" hidden><button id="fullscreen">Fullscreen</button><p id="save-status">Progress saves automatically in this browser.</p><p class="smallprint">Early asset-based reconstruction. Later story scenes, events, purchases and gameplay balance are not yet at parity with Android.</p><button id="close-settings">Back to game</button></dialog>
+  <dialog id="settings-dialog"><h2>Settings</h2><label><input id="sound" type="checkbox"> Sound effects</label><label><input id="music" type="checkbox"> Music</label><label>Introduction <select id="intro-version"><option value="1">Original</option><option value="1choices">Dialogue choices</option><option value="1fast">Short version</option></select></label><button id="replay-intro">Replay introduction</button><button id="export-save">Export save</button><button id="import-save">Import save</button><input id="save-file" type="file" accept="application/json,.json" hidden><button id="fullscreen">Fullscreen</button><p id="save-status">Progress saves automatically in this browser.</p><p class="smallprint">Early asset-based reconstruction. Later story scenes, events, purchases and gameplay balance are not yet at parity with Android.</p><button id="close-settings">Back to game</button></dialog>
 </main>
 <script type="module" src="/src/main.js"></script></body></html>
